@@ -324,7 +324,13 @@ module ArrayMatrix: AbstractMatrix =
 
     let add_empty_columns m cols = timing_wrap "add_empty_cols" (add_empty_columns m) cols
 
+    let add_empty_columns m cols =
+      let m' = add_empty_columns m cols in
+      if M.tracing then M.trace "col" "add empty columns";
+      m'
+
     let append_row m row  =
+    if M.tracing then M.trace "row" "append row";
       let size = num_rows m in
       let new_matrix = make_matrix (size + 1) (num_cols m) A.zero in
       for i = 0 to size - 1 do
@@ -334,9 +340,11 @@ module ArrayMatrix: AbstractMatrix =
       new_matrix
 
     let get_row m n =
+      if M.tracing then M.trace "row" "get row";
       V.of_array m.(n)
 
     let remove_row m n =
+      if M.tracing then M.trace "row" "remove row";
       let new_matrix = make_matrix (num_rows m - 1) (num_cols m) A.zero in
       if not @@ is_empty new_matrix then
         if n = 0 then
@@ -351,7 +359,12 @@ module ArrayMatrix: AbstractMatrix =
 
     let get_col m n = timing_wrap "get_col" (get_col m) n
 
+    let get_col m n =
+      if M.tracing then M.trace "col" "get column";
+      get_col m n
+
     let set_col_with m new_col n =
+      if M.tracing then M.trace "col" "set column";
       for i = 0 to num_rows m - 1 do
         m.(i).(n) <- V.nth new_col i
       done; m
@@ -368,6 +381,7 @@ module ArrayMatrix: AbstractMatrix =
     let equal m1 m2 = timing_wrap "equal" (equal m1) m2
 
     let reduce_col_with m j =
+      if M.tracing then M.trace "col" "reduce column";
       if not @@ is_empty m then
         (let r = ref (-1) in
          for i' = 0 to num_rows m - 1 do
@@ -390,6 +404,7 @@ module ArrayMatrix: AbstractMatrix =
       copy
 
     let del_col m j =
+      if M.tracing then M.trace "col" "delete column";
       if is_empty m then m else
         let new_matrix = Array.make_matrix (num_rows m) (num_cols m - 1) A.zero in
         for i = 0 to num_rows m - 1 do
@@ -397,6 +412,7 @@ module ArrayMatrix: AbstractMatrix =
         done; new_matrix
 
     let del_cols m cols =
+      if M.tracing then M.trace "col" "delete columns";
       let n_c = Array.length cols in
       if n_c = 0 || is_empty m then m
       else
@@ -420,11 +436,13 @@ module ArrayMatrix: AbstractMatrix =
       Array.map2 f' m (Array.combine range_array (V.to_array v))
 
     let remove_zero_rows m =
+      if M.tracing then M.trace "row" "remove zero rows";
       Array.filter (fun x -> Array.exists (fun y -> y <>: A.zero) x) m
 
     let rref_with m =
       (*Based on Cousot - Principles of Abstract Interpretation (2021)*)
       let swap_rows i1 i2 =
+        if M.tracing then M.trace "row" "swap rows";
         let tmp = m.(i1) in
         m.(i1) <- m.(i2);
         m.(i2) <- tmp;
@@ -474,6 +492,7 @@ module ArrayMatrix: AbstractMatrix =
 
 
     let reduce_col_with_vec m j v =
+      if M.tracing then M.trace "col" "reduce column with";
       for i = 0 to num_rows m - 1 do
         if m.(i).(j) <>: A.zero then
           let beta = m.(i).(j) /: v.(j) in
