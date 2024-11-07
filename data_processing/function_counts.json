@@ -1,11 +1,8 @@
 {
-	"trace_count" : 83088,
+	"trace_count" : 20455,
 	"data" : {
 		"empty": 1952,
 		"copy": 4043,
-		"num_cols": 13399,
-		"is_empty": 18882,
-		"num_rows": 30352,
 		"normalize_with": 74,
 		"rref_with": 74,
 		"equal": 3590,

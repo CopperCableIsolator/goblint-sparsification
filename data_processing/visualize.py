@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json
 
-percentages = True
+percentages = False
 
 with open("function_counts.json", "r") as file:
     json_obj = json.load(file)

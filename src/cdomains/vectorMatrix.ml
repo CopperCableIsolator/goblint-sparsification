@@ -233,15 +233,15 @@ module ArrayMatrix : AbstractMatrix =
         Array.make_matrix 0 0 A.zero
 
       let num_rows m =
-        if M.tracing then M.trace "arrayMatrix" "num_rows";
+        (**if M.tracing then M.trace "arrayMatrix" "num_rows";**)
         Array.length m
 
       let is_empty m =
-        if M.tracing then M.trace "arrayMatrix" "is_empty";
+        (**if M.tracing then M.trace "arrayMatrix" "is_empty";**)
         num_rows m = 0
 
       let num_cols m =
-        if M.tracing then M.trace "arrayMatrix" "num_cols";
+        (**if M.tracing then M.trace "arrayMatrix" "num_cols";**)
         if is_empty m then 0 else Array.length m.(0)
 
       let copy m =
