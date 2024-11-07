@@ -1,0 +1,31 @@
+{
+	"trace_count" : 83088,
+	"data" : {
+		"empty": 1952,
+		"copy": 4043,
+		"num_cols": 13399,
+		"is_empty": 18882,
+		"num_rows": 30352,
+		"normalize_with": 74,
+		"rref_with": 74,
+		"equal": 3590,
+		"add_empty_columns": 290,
+		"find_opt": 2329,
+		"rref_vec_with": 721,
+		"init_with_vec": 81,
+		"get_row": 3218,
+		"reduce_col_with": 554,
+		"remove_zero_rows": 399,
+		"get_pivot_positions": 666,
+		"rref_vec": 660,
+		"reduce_col_with_vec": 576,
+		"get_col": 734,
+		"map2_with": 42,
+		"map2i_with": 104,
+		"remove_row": 104,
+		"is_covered_by": 59,
+		"del_cols": 163,
+		"set_col_with": 2,
+		"rref_matrix_with": 20
+	}
+}
