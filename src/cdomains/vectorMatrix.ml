@@ -4,10 +4,10 @@ open Batteries
 module Array = Batteries.Array
 module M = Messages
 
-(* let timing_wrap = Timing.wrap *)
+let timing_wrap = Timing.wrap
 (* Disable timing of VectorMatrix and AffineEqualityDomain.
    This is cleaner than a timing functor because the timed functions also call each other. *)
-let timing_wrap _ f x = f x
+(* let timing_wrap _ f x = f x *)
 
 (** Abstracts the functions of the Mpqf module for rationals from Apron that implements multi-precision rationals.
     One could later exchange "Mpqf" with a different module that provides the functions specified by this interface. *)
