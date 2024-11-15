@@ -251,7 +251,7 @@ module ArrayMatrix : AbstractMatrix =
 
       let copy m =
         if M.tracing then M.trace "arrayMatrix" "copy";
-        timing_wrap "copy" copy m
+        timing_wrap "ArrayMatrix copy" copy m
 
       let add_empty_columns m cols =
         let nnc = Array.length cols in
@@ -271,7 +271,7 @@ module ArrayMatrix : AbstractMatrix =
           m'
 
       let add_empty_columns m cols =
-        timing_wrap "add_empty_cols" (add_empty_columns m) cols
+        timing_wrap "ArrayMatrix add_empty_cols" (add_empty_columns m) cols
 
       let add_empty_columns m cols =
         if M.tracing then M.trace "arrayMatrix" "add_empty_columns";
@@ -306,7 +306,7 @@ module ArrayMatrix : AbstractMatrix =
       let get_col m n =
         V.of_array @@ Array.init (Array.length m) (fun i -> m.(i).(n))
 
-      let get_col m n = timing_wrap "get_col" (get_col m) n
+      let get_col m n = timing_wrap "ArrayMatrix get_col" (get_col m) n
 
       let get_col m n =
         if M.tracing then M.trace "arrayMatrix" "get_col";
@@ -320,7 +320,7 @@ module ArrayMatrix : AbstractMatrix =
 
       let set_col_with m new_col n =
         if M.tracing then M.trace "arrayMatrix" "set_col_with";
-        timing_wrap "set_col" (set_col_with m new_col) n
+        timing_wrap "ArrayMatrix set_col" (set_col_with m new_col) n
 
       let set_col m new_col n =
         if M.tracing then M.trace "arrayMatrix" "set_col";
@@ -333,7 +333,7 @@ module ArrayMatrix : AbstractMatrix =
 
       let equal m1 m2 =
         if M.tracing then M.trace "arrayMatrix" "equal";
-        timing_wrap "equal" (equal m1) m2
+        timing_wrap "ArrayMatrix equal" (equal m1) m2
 
       let reduce_col_with m j =
         if not @@ is_empty m then (
@@ -353,7 +353,7 @@ module ArrayMatrix : AbstractMatrix =
 
       let reduce_col_with m j =
         if M.tracing then M.trace "arrayMatrix" "reduce_col_with";
-        timing_wrap "reduce_col_with" (reduce_col_with m) j
+        timing_wrap "ArrayMatrix reduce_col_with" (reduce_col_with m) j
 
       let reduce_col m j =
         let copy = copy m in
@@ -393,7 +393,7 @@ module ArrayMatrix : AbstractMatrix =
 
       let del_cols m cols =
         if M.tracing then M.trace "arrayMatrix" "del_cols";
-        timing_wrap "del_cols" (del_cols m) cols
+        timing_wrap "ArrayMatrix del_cols" (del_cols m) cols
 
       let map2i f m v =
         if M.tracing then M.trace "arrayMatrix" "map2i";
@@ -451,7 +451,7 @@ module ArrayMatrix : AbstractMatrix =
 
       let rref_with m =
         if M.tracing then M.trace "arrayMatrix" "rref_with";
-        timing_wrap "rref_with" rref_with m
+        timing_wrap "ArrayMatrix rref_with" rref_with m
 
       let init_with_vec v =
         if M.tracing then M.trace "arrayMatrix" "init_with_vec";
@@ -528,7 +528,7 @@ module ArrayMatrix : AbstractMatrix =
 
       let rref_vec_with m v =
         if M.tracing then M.trace "arrayMatrix" "rref_vec_with";
-        timing_wrap "rref_vec_with" (rref_vec_with m) v
+        timing_wrap "ArrayMatrix rref_vec_with" (rref_vec_with m) v
 
       let rref_matrix_with m1 m2 =
         (*Similar to rref_vec_with but takes two matrices instead.*)
@@ -547,13 +547,13 @@ module ArrayMatrix : AbstractMatrix =
 
       let rref_matrix_with m1 m2 =
         if M.tracing then M.trace "arrayMatrix" "rref_matrix_with";
-        timing_wrap "rref_matrix_with" (rref_matrix_with m1) m2
+        timing_wrap "ArrayMatrix rref_matrix_with" (rref_matrix_with m1) m2
 
       let normalize_with m = rref_with m
 
       let normalize_with m =
         if M.tracing then M.trace "arrayMatrix" "normalize_with";
-        timing_wrap "normalize_with" normalize_with m
+        timing_wrap "ArrayMatrix normalize_with" normalize_with m
 
       let normalize m =
         if M.tracing then M.trace "arrayMatrix" "normalize";
@@ -588,7 +588,7 @@ module ArrayMatrix : AbstractMatrix =
 
       let is_covered_by m1 m2 =
         if M.tracing then M.trace "arrayMatrix" "is_covered_by";
-        timing_wrap "is_covered_by" (is_covered_by m1) m2
+        timing_wrap "ArrayMatrix is_covered_by" (is_covered_by m1) m2
 
       let find_opt f m =
         if M.tracing then M.trace "arrayMatrix" "find_opt";
@@ -612,7 +612,7 @@ module ArrayMatrix : AbstractMatrix =
 
       let map2_with f m v =
         if M.tracing then M.trace "arrayMatrix" "map2_with";
-        timing_wrap "map2_with" (map2_with f m) v
+        timing_wrap "ArrayMatrix map2_with" (map2_with f m) v
 
       let map2i_with f m v =
         if num_rows m = V.length v then
@@ -626,7 +626,7 @@ module ArrayMatrix : AbstractMatrix =
 
       let map2i_with f m v =
         if M.tracing then M.trace "arrayMatrix" "map2i_with";
-        timing_wrap "map2i_with" (map2i_with f m) v
+        timing_wrap "ArrayMatrix map2i_with" (map2i_with f m) v
     end
 
 (** Sparse matrix implementation.

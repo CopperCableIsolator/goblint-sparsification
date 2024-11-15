@@ -12,6 +12,8 @@ module M = Messages
 open GobApron
 open VectorMatrix
 
+let timing_wrap _ f x = f x
+
 module Mpqf = SharedFunctions.Mpqf
 
 module AffineEqualityMatrix (Vec: AbstractVector) (Mx: AbstractMatrix) =
@@ -32,7 +34,7 @@ struct
       let m' = if not del then let m = copy m in Array.fold_left (fun y x -> reduce_col_with y x; y) m ch.dim else m in
       remove_zero_rows @@ del_cols m' ch.dim)
 
-  let dim_remove ch m ~del = VectorMatrix.timing_wrap "dim remove" (fun del -> dim_remove ch m ~del:del) del
+  let dim_remove ch m ~del = timing_wrap "dim remove" (fun del -> dim_remove ch m ~del:del) del
 end
 
 (** It defines the type t of the affine equality domain (a struct that contains an optional matrix and an apron environment) and provides the functions needed for handling variables (which are defined by RelationDomain.D2) such as add_vars remove_vars.
