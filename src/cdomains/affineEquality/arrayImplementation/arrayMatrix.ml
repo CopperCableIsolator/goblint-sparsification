@@ -39,7 +39,7 @@ module ArrayMatrix: AbstractMatrix =
     let copy m = Timing.wrap "copy" (copy) m
 
     let add_empty_columns m cols =
-      let () = Printf.printf "Before add_empty_columns m:\n%sindices: %s\n" (show m) (Array.fold_right (fun x s -> (Int.to_string x) ^ "," ^ s) cols "") in
+      (* let () = Printf.printf "Before add_empty_columns m:\n%sindices: %s\n" (show m) (Array.fold_right (fun x s -> (Int.to_string x) ^ "," ^ s) cols "") in *)
       Array.modifyi (+) cols;
       let nnc = Array.length cols in
       if is_empty m || nnc = 0 then m else
@@ -52,7 +52,7 @@ module ArrayMatrix: AbstractMatrix =
             m'.(i).(j + !offset) <- m.(i).(j);
           done
         done;
-        let () = Printf.printf "After add_empty_columns m:\n%s\n" (show m') in
+        (* let () = Printf.printf "After add_empty_columns m:\n%s\n" (show m') in *)
         m'
 
     let add_empty_columns m cols = Timing.wrap "add_empty_cols" (add_empty_columns m) cols
@@ -70,7 +70,7 @@ module ArrayMatrix: AbstractMatrix =
       V.of_array m.(n)
 
     let remove_row m n =
-      let () = Printf.printf "Before remove_row %i of m:\n%s\n" n (show m) in
+      (* let () = Printf.printf "Before remove_row %i of m:\n%s\n" n (show m) in *)
       let new_matrix = Array.make_matrix (num_rows m - 1) (num_cols m) A.zero in
       if not @@ is_empty new_matrix then
         if n = 0 then
@@ -90,13 +90,13 @@ module ArrayMatrix: AbstractMatrix =
       for i = 0 to num_rows m - 1 do
         m.(i).(n) <- V.nth new_col i
       done;
-      let () = Printf.printf "After set_col m:\n%s\n" (show m) in
+      (* let () = Printf.printf "After set_col m:\n%s\n" (show m) in *)
       m
 
     let set_col_with m new_col n = Timing.wrap "set_col" (set_col_with m new_col) n
 
     let set_col m new_col n =
-      let () = Printf.printf "Before set_col m:\n%s\n" (show m) in
+      (* let () = Printf.printf "Before set_col m:\n%s\n" (show m) in *)
       let copy = copy m in
       set_col_with copy new_col n
 
@@ -123,10 +123,10 @@ module ArrayMatrix: AbstractMatrix =
 
     let reduce_col_with m j  = Timing.wrap "reduce_col_with" (reduce_col_with m) j
     let reduce_col m j =
-      let () = Printf.printf "Before reduce_col %i of m:\n%s\n" j (show m) in
+      (* let () = Printf.printf "Before reduce_col %i of m:\n%s\n" j (show m) in *)
       let copy = copy m in
       reduce_col_with copy j;
-      let () = Printf.printf "After reduce_col %i of m:\n%s\n" j (show copy) in
+      (* let () = Printf.printf "After reduce_col %i of m:\n%s\n" j (show copy) in *)
       copy
 
     let del_col m j =
@@ -138,7 +138,7 @@ module ArrayMatrix: AbstractMatrix =
 
     let del_cols m cols =
       let n_c = Array.length cols in
-      let () = Printf.printf "Before del_cols cols_length=%i \nm:\n%s\n" n_c (show m) in
+      (* let () = Printf.printf "Before del_cols cols_length=%i \nm:\n%s\n" n_c (show m) in *)
       if n_c = 0 || is_empty m then m
       else
         let m_r, m_c = num_rows m, num_cols m in
@@ -279,11 +279,12 @@ module ArrayMatrix: AbstractMatrix =
     let rref_vec_with m v = Timing.wrap "rref_vec_with" (rref_vec_with m) v
 
     let rref_vec m v = (* !! There was another rref_vec function that has been renamed to rref_vec_helper !!*)
-      let () = Printf.printf "Before rref_vec we have m:\n%sv: %s\n" (show m) (V.show v) in 
+      (* let () = Printf.printf "Before rref_vec we have m:\n%sv: %s\n" (show m) (V.show v) in  *)
       let m' = copy m in
       let v' = V.copy v in 
       match rref_vec_with m' v' with
-      | Some res -> let () = Printf.printf "After rref_vec, before removing zero rows, we have m:\n%s\n" (show res) in 
+      | Some res -> 
+        (* let () = Printf.printf "After rref_vec, before removing zero rows, we have m:\n%s\n" (show res) in  *)
         Some (remove_zero_rows res)
       | None -> let () = Printf.printf "After rref_vec there is no normalization\n" in None
 
@@ -308,12 +309,12 @@ module ArrayMatrix: AbstractMatrix =
     let rref_matrix_with m1 m2 = Timing.wrap "rref_matrix_with" (rref_matrix_with m1) m2
 
     let rref_matrix m1 m2 = 
-      let () = Printf.printf "Before rref_matrix m1 m2\nm1: %s\nm2: %s\n" (show m1) (show m2) in
       let m1' = copy m1 in
       let m2' = copy m2 in 
+      let () = Printf.printf "Before rref_matrix we have m1:\n%s\nm2:%s\n" (show m1) (show m2) in
       match rref_matrix_with m1' m2' with
-      | Some m -> let () = Printf.printf "After rref_matrix m:\n %s\n" (show m) in Some m
-      | None -> let () = Printf.printf "No normalization for rref_matrix found" in None
+      | Some m -> let () = Printf.printf "After rref_matrix we have m:\n%s" (show m) in Some m
+      | None -> let () = Printf.printf "No rref_matrix" in None
 
     let is_covered_by m1 m2 =
       (*Performs a partial rref reduction to check if concatenating both matrices and afterwards normalizing them would yield a matrix <> m2 *)
@@ -376,10 +377,10 @@ module ArrayMatrix: AbstractMatrix =
     let map2i_with f m v = Timing.wrap "map2i_with" (map2i_with f m) v    
 
     let map2i f m v =
-      let () = Printf.printf "Before map2i m:\n%sv:%s\n" (show m) (V.show v) in
+      (* let () = Printf.printf "Before map2i m:\n%sv:%s\n" (show m) (V.show v) in *)
       let m' = copy m in
       map2i_with f m' v;
-      let () = Printf.printf "After map2i m:\n%s\n" (show m') in
+      (* let () = Printf.printf "After map2i m:\n%s\n" (show m') in *)
       m'
 
     let swap_rows m j k =

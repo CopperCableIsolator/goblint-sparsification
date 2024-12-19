@@ -138,12 +138,14 @@ module ListMatrix: AbstractMatrix =
     let del_cols m cols = Timing.wrap "del_cols" (del_cols m) cols
 
     let map2i f m v =
+      (* let () = Printf.printf "Before map2i m:\n%sv:%s\n" (show m) (V.show v) in *)
       let rec map2i_min i acc m v =
         match m, v with
         | [], _  -> List.rev acc
         | row :: rs, [] -> List.rev_append (row :: acc) rs
         | row :: rs, value :: vs -> map2i_min (i + 1) (f i row value :: acc) rs vs
       in  
+      (* let () = Printf.printf "After map2i m:\n%s\n" (show (map2i_min 0 [] m (V.to_list v))) in *)
       map2i_min 0 [] m (V.to_list v)
 
     let remove_zero_rows m =
@@ -153,6 +155,7 @@ module ListMatrix: AbstractMatrix =
       [v]
 
     let normalize m =
+      let () = Printf.printf "Before normalize we have m:\n%s\n" (show m) in
       let col_count = num_cols m in
       let dec_mat_2D (m : t) (row_idx : int) (col_idx : int) : t = 
         List.filteri_map (fun i row -> if i < row_idx then None else Some (V.starting_from_nth col_idx row)) m
@@ -200,7 +203,9 @@ module ListMatrix: AbstractMatrix =
               main_loop subtracted_m m' (row_idx + 1) (piv_col_idx + 1)) (* We start at piv_col_idx + 1 because every other col before that is zero at the bottom*)
       in 
       let m' = main_loop m m 0 0 in
-      if affeq_rows_are_valid m' then Some m' else None (* TODO: We can check this for each row, using the helper function row_is_invalid *)
+      if affeq_rows_are_valid m' then 
+        let () = Printf.printf "After normalizing we have m:\n%s" (show m') in Some m' 
+      else let () = Printf.printf "No normalization" in None (* TODO: We can check this for each row, using the helper function row_is_invalid *)
 
     (* This function return a tuple of row index and pivot position (column) in m *)
     (* TODO: maybe we could use a Hashmap instead of a list? *)
@@ -253,9 +258,17 @@ module ListMatrix: AbstractMatrix =
     (* This should yield the same result as appending m2 to m1, normalizing and removing zero rows. However, it is usually faster. *)
     (* Both input matrices are assumed to be in rref form *)
     let rref_matrix (m1 : t) (m2 : t) =
+      let () = Printf.printf "Before rref_matrix we have m1:\n%s\nm2:%s\n" (show m1) (show m2) in
       let big_m, small_m = if num_rows m1 > num_rows m2 then m1, m2 else m2, m1 in
-      fst @@ List.fold_while (fun acc _ -> Option.is_some acc) 
-        (fun acc_big_m small -> rref_vec (Option.get acc_big_m) small ) (Some big_m) small_m (* TODO: pivot_positions are recalculated at each step, but since they need to be adjusted after each step it might not make sense to keep track of them here.*)
+      let m_opt = fst @@ List.fold_while (fun acc _ -> Option.is_some acc) 
+        (fun acc_big_m small -> rref_vec (Option.get acc_big_m) small ) (Some big_m) small_m (* TODO: pivot_positions are recalculated at each step, but since they need to be adjusted after each step it might not make sense to keep track of them here.*) in
+      match m_opt with
+      | None -> 
+        let () = Printf.printf "No rref_matrix" in
+        None
+      | Some m -> 
+        let () = Printf.printf "After rref_matrix we have m:\n%s" (show m) in
+        Some m
 
     let rref_matrix m1 m2 = Timing.wrap "rref_matrix" (rref_matrix m1) m2
 
@@ -294,14 +307,13 @@ module ListMatrix: AbstractMatrix =
     let is_covered_by m1 m2 =
       let () = Printf.printf "is_covered_by m1: \n%s " (show m1) in
       let () = Printf.printf "is_covered_by m2 \n%s " (show m2) in
-        match normalize @@ append_matrices m2 m1 with
-        | None -> false
-        | Some m -> 
-          let () = Printf.printf "is_covered_by m: \n%s " (show m) in
-          let () = Printf.printf "is_covered_by m no-zero: \n%s " (show (remove_zero_rows m)) in
-          let () = Printf.printf "is_covered_by m2 no-zero: \n%s " (show (remove_zero_rows m2)) in
-          let () = Printf.printf "is_covered_by m1 by m2 result: %b\n" (equal (remove_zero_rows m) (remove_zero_rows m2)) in
-          equal (remove_zero_rows m) (remove_zero_rows m2)
+      match normalize @@ append_matrices m2 m1 with
+      | None -> false
+      | Some m -> 
+        let () = Printf.printf "is_covered_by m no-zero: \n%s " (show (remove_zero_rows m)) in
+        let () = Printf.printf "is_covered_by m2 no-zero: \n%s " (show (remove_zero_rows m2)) in
+        let () = Printf.printf "is_covered_by m1 by m2 result: %b\n" (equal (remove_zero_rows m) (remove_zero_rows m2)) in
+        equal (remove_zero_rows m) (remove_zero_rows m2)
 
     let is_covered_by m1 m2 = Timing.wrap "is_covered_by" (is_covered_by m1) m2
 
@@ -309,6 +321,8 @@ module ListMatrix: AbstractMatrix =
       List.find_opt f m
 
     let map2 f m v =
+      let () = Printf.printf "Before map2 we have m:\n%s\n" (show m) in
       let vector_length = V.length v in
+      let () = Printf.printf "After map2 we have m:\n%s\n" (show (List.mapi (fun index row -> if index < vector_length then f row (V.nth v index) else row ) m)) in
       List.mapi (fun index row -> if index < vector_length then f row (V.nth v index) else row ) m
   end
