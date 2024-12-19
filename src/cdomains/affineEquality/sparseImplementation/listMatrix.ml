@@ -317,6 +317,18 @@ module ListMatrix: AbstractMatrix =
               if linearly_indep then false else is_covered_by_helper vs1 m2
         in is_covered_by_helper m1 m2
 
+    let is_covered_by m1 m2 =
+      let () = Printf.printf "is_covered_by m1: \n%s " (show m1) in
+      let () = Printf.printf "is_covered_by m2 \n%s " (show m2) in
+        match normalize @@ append_matrices m2 m1 with
+        | None -> false
+        | Some m -> 
+          let () = Printf.printf "is_covered_by m: \n%s " (show m) in
+          let () = Printf.printf "is_covered_by m no-zero: \n%s " (show (remove_zero_rows m)) in
+          let () = Printf.printf "is_covered_by m2 no-zero: \n%s " (show (remove_zero_rows m2)) in
+          let () = Printf.printf "is_covered_by m1 by m2 result: %b\n" (equal (remove_zero_rows m) (remove_zero_rows m2)) in
+          equal (remove_zero_rows m) (remove_zero_rows m2)
+
     let is_covered_by m1 m2 = Timing.wrap "is_covered_by" (is_covered_by m1) m2
 
     let find_opt f m =
