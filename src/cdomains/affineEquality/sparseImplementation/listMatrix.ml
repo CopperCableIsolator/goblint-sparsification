@@ -113,16 +113,6 @@ module ListMatrix: AbstractMatrix =
                       sub_scaled_row row pivot_row s)            
             ) m
 
-    let reduce_col_with_vec m j v = 
-      let pivot_element = V.nth v j in
-      if pivot_element = A.zero then m
-      else List.mapi (fun idx row ->
-          let row_value = V.nth row j in 
-          if row_value =: A.zero then row
-          else (let s = row_value /: pivot_element in
-                V.map2_f_preserves_zero (fun x y -> x -: s *: y) row v)            
-        ) m
-
     let del_col m j =
       if num_cols m = 1 then empty () 
       else 
@@ -216,11 +206,23 @@ module ListMatrix: AbstractMatrix =
           | Some (pivot_col, _) -> (i, pivot_col) :: acc
       ) [] m
 
-    (* Inserts the vector v with pivot at piv_idx at the correct position in m. m has to be in rref form. *)
+    let reduce_col_with_vec m j v = 
+      let pivot_element = V.nth v j in
+      if pivot_element = A.zero then m
+      else List.mapi (fun idx row ->
+          let row_value = V.nth row j in 
+          if row_value =: A.zero then row
+          else (let s = row_value /: pivot_element in
+                V.map2_f_preserves_zero (fun x y -> x -: s *: y) row v)
+        ) m
+
+    (* Inserts the vector v with pivot at piv_idx at the correct position in m. m has to be in rref form and v is only <>: A.zero on piv_idx or idx not included in piv_positions *)
     let insert_v_according_to_piv m v piv_idx pivot_positions = 
+      let reduced_m = reduce_col_with_vec m piv_idx v in
       match List.find_opt (fun (row_idx, piv_col) -> piv_col > piv_idx) pivot_positions with
-      | None -> append_row m v
-      | Some (row_idx, _) -> let (before, after) = List.split_at row_idx m in (* TODO: Optimize *)
+      | None -> append_row reduced_m v
+      | Some (row_idx, _) ->
+        let (before, after) = List.split_at row_idx reduced_m in (* TODO: Optimize *)
         before @ (v :: after)
 
     (* This function yields the same result as appending v to m, normalizing and removing zero rows would. *)
@@ -308,16 +310,16 @@ module ListMatrix: AbstractMatrix =
               if linearly_indep then false else is_covered_by_helper vs1 m2
         in is_covered_by_helper m1 m2
 
-    (* let is_covered_by m1 m2 =
-      let () = Printf.printf "is_covered_by m1: \n%s " (show m1) in
-      let () = Printf.printf "is_covered_by m2 \n%s " (show m2) in
-      match normalize @@ append_matrices m2 m1 with
-      | None -> false
-      | Some m -> 
+    let is_covered_by m1 m2 =
+       let () = Printf.printf "is_covered_by m1: \n%s " (show m1) in
+       let () = Printf.printf "is_covered_by m2 \n%s " (show m2) in
+       match normalize @@ append_matrices m2 m1 with
+       | None -> false
+       | Some m -> 
         let () = Printf.printf "is_covered_by m no-zero: \n%s " (show (remove_zero_rows m)) in
         let () = Printf.printf "is_covered_by m2 no-zero: \n%s " (show (remove_zero_rows m2)) in
         let () = Printf.printf "is_covered_by m1 by m2 result: %b\n" (equal (remove_zero_rows m) (remove_zero_rows m2)) in
-        equal (remove_zero_rows m) (remove_zero_rows m2) *)
+        equal (remove_zero_rows m) (remove_zero_rows m2)
 
     let is_covered_by m1 m2 = Timing.wrap "is_covered_by" (is_covered_by m1) m2
 
