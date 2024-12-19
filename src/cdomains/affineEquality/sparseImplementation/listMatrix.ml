@@ -249,7 +249,7 @@ module ListMatrix: AbstractMatrix =
             Some (insert_v_according_to_piv m normalized_v idx pivot_positions)
 
     let rref_vec m v = Timing.wrap "rref_vec" (rref_vec m) v
-    
+
     (* This should yield the same result as appending m2 to m1, normalizing and removing zero rows. However, it is usually faster. *)
     (* Both input matrices are assumed to be in rref form *)
     let rref_matrix (m1 : t) (m2 : t) =
@@ -290,6 +290,18 @@ module ListMatrix: AbstractMatrix =
               let linearly_indep = is_linearly_independent_rref v1 m2 in
               if linearly_indep then false else is_covered_by_helper vs1 m2
         in is_covered_by_helper m1 m2
+
+    let is_covered_by m1 m2 =
+      let () = Printf.printf "is_covered_by m1: \n%s " (show m1) in
+      let () = Printf.printf "is_covered_by m2 \n%s " (show m2) in
+        match normalize @@ append_matrices m2 m1 with
+        | None -> false
+        | Some m -> 
+          let () = Printf.printf "is_covered_by m: \n%s " (show m) in
+          let () = Printf.printf "is_covered_by m no-zero: \n%s " (show (remove_zero_rows m)) in
+          let () = Printf.printf "is_covered_by m2 no-zero: \n%s " (show (remove_zero_rows m2)) in
+          let () = Printf.printf "is_covered_by m1 by m2 result: %b\n" (equal (remove_zero_rows m) (remove_zero_rows m2)) in
+          equal (remove_zero_rows m) (remove_zero_rows m2)
 
     let is_covered_by m1 m2 = Timing.wrap "is_covered_by" (is_covered_by m1) m2
 
