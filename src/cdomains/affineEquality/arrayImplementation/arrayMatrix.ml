@@ -210,7 +210,7 @@ module ArrayMatrix: AbstractMatrix =
 
 
     let reduce_col_with_vec m j v =
-      let () = Printf.printf "Before reduce_col_with_vec %i with vec %s of m:\n%s\n" j (V.show (V.of_array v)) (show m) in
+      (* let () = Printf.printf "Before reduce_col_with_vec %i with vec %s of m:\n%s\n" j (V.show (V.of_array v)) (show m) in *)
       for i = 0 to num_rows m - 1 do
         if m.(i).(j) <>: A.zero then
           let beta = m.(i).(j) /: v.(j) in
@@ -264,27 +264,27 @@ module ArrayMatrix: AbstractMatrix =
       (*This function yields the same result as appending vector v to m and normalizing it afterwards would. However, it is usually faster than performing those ops manually.*)
       (*m must be in rref form and contain the same num of cols as v*)
       (*If m is empty then v is simply normalized and returned*)
-      (*let v = V.to_array v in
-        if is_empty m then
+      let v = V.to_array v in
+      if is_empty m then
         match Array.findi (fun x -> x <>: A.zero) v with
         | exception Not_found -> None
         | i -> if i = Array.length v - 1 then None else
             let v_i = v.(i) in
             Array.iteri (fun j x -> v.(j) <- x /: v_i) v; Some (init_with_vec @@ V.of_array v)
-        else
+      else
         let pivot_elements = get_pivot_positions m in
-        rref_vec_helper m pivot_elements v*)
-      normalize @@ append_row m v
+        rref_vec_helper m pivot_elements v
+    (* normalize @@ append_row m v *)
 
     let rref_vec_with m v = Timing.wrap "rref_vec_with" (rref_vec_with m) v
 
     let rref_vec m v = (* !! There was another rref_vec function that has been renamed to rref_vec_helper !!*)
-      (* let () = Printf.printf "Before rref_vec we have m:\n%sv: %s\n" (show m) (V.show v) in  *)
+      let () = Printf.printf "Before rref_vec we have m:\n%s\nv:\n%s\n" (show m) (V.show v) in
       let m' = copy m in
       let v' = V.copy v in 
       match rref_vec_with m' v' with
       | Some res -> 
-        (* let () = Printf.printf "After rref_vec, before removing zero rows, we have m:\n%s\n" (show res) in  *)
+        let () = Printf.printf "After rref_vec, we have m:\n%s\n" (show res) in
         Some (remove_zero_rows res)
       | None -> let () = Printf.printf "After rref_vec there is no normalization\n" in None
 

@@ -197,7 +197,6 @@ module ListMatrix: AbstractMatrix =
         let () = Printf.printf "After normalizing we have m:\n%s" (show m') in Some m' 
       else let () = Printf.printf "No normalization" in None (* TODO: We can check this for each row, using the helper function row_is_invalid *)
 
-
     (* This function return a tuple of row index and pivot position (column) in m *)
     (* TODO: maybe we could use a Hashmap instead of a list? *)
     let get_pivot_positions (m : t) : (int * int) list =
@@ -230,6 +229,7 @@ module ListMatrix: AbstractMatrix =
     let () = assert_rref (empty ())
 
     (* Sets the jth column to zero by subtracting multiples of v *)
+
     let reduce_col_with_vec m j v = 
       let pivot_element = V.nth v j in
       if pivot_element = A.zero then m
@@ -252,6 +252,7 @@ module ListMatrix: AbstractMatrix =
     (* This function yields the same result as appending v to m, normalizing and removing zero rows would. *)
     (* m must be in rref form and must contain the same number of columns as v *)
     let rref_vec m v =
+      let () = Printf.printf "Before rref_vec we have m:\n%s\nv:\n%s\n" (show m) (V.show v) in
       if is_empty m then (* In this case, v is normalized and returned *)
         match V.find_first_non_zero v with 
         | None -> None
@@ -271,15 +272,18 @@ module ListMatrix: AbstractMatrix =
           ) v pivot_positions
         in 
         match V.find_first_non_zero v_after_elim with (* now we check for contradictions and finally insert v *)
-        | None -> Some m (* v is zero vector and was therefore already covered by m *)
+        | None -> let () = Printf.printf "After rref_vec, we have m:\n%s\n" (show m) in Some m (* v is zero vector and was therefore already covered by m *)
         | Some (idx, value) -> 
           if idx = (num_cols m - 1) then 
+            let () = Printf.printf "After rref_vec there is no normalization\n" in
             None
           else
             let normalized_v = V.map_f_preserves_zero (fun x -> x /: value) v_after_elim in
+            let () = Printf.printf "After rref_vec, we have m:\n%s\n" (show (insert_v_according_to_piv m normalized_v idx pivot_positions)) in
             Some (insert_v_according_to_piv m normalized_v idx pivot_positions)
 
-    let rref_vec m v = Timing.wrap "rref_vec" (rref_vec m) v
+    let rref_vec m v = 
+      Timing.wrap "rref_vec" (rref_vec m) v
 
     (* This should yield the same result as appending m2 to m1, normalizing and removing zero rows. However, it is usually faster. *)
     (* Both input matrices are assumed to be in rref form *)
@@ -287,7 +291,7 @@ module ListMatrix: AbstractMatrix =
       let () = Printf.printf "Before rref_matrix we have m1:\n%s\nm2:%s\n" (show m1) (show m2) in
       let big_m, small_m = if num_rows m1 > num_rows m2 then m1, m2 else m2, m1 in
       let m_opt = fst @@ List.fold_while (fun acc _ -> Option.is_some acc) 
-        (fun acc_big_m small -> rref_vec (Option.get acc_big_m) small ) (Some big_m) small_m (* TODO: pivot_positions are recalculated at each step, but since they need to be adjusted after each step it might not make sense to keep track of them here.*) in
+          (fun acc_big_m small -> rref_vec (Option.get acc_big_m) small ) (Some big_m) small_m (* TODO: pivot_positions are recalculated at each step, but since they need to be adjusted after each step it might not make sense to keep track of them here.*) in
       match m_opt with
       | None -> 
         let () = Printf.printf "No rref_matrix" in
