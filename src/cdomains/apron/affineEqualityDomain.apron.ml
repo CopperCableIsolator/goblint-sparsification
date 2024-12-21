@@ -86,13 +86,19 @@ struct
         begin match t.d with
           | Some m ->
             let row = Matrix.find_opt (fun r -> Vector.nth r (Environment.dim_of_var t.env x) =: Mpqf.one) m in
+            let () = Printf.printf "Vector.set_nth get_coeff_vec Var x Some m\n" in
             begin match row with
               | Some v when is_const_vec v ->
-                let () = Printf.printf "Vector.set_nth get_coeff_vec Some m\n" in
+                let () = Printf.printf "Vector.set_nth get_coeff_vec Var x is Some const_vec v: %s" (Vector.show v) in
                 Vector.set_nth zero_vec ((Vector.length zero_vec) - 1) (Vector.nth v (Vector.length v - 1))
-              | _ -> entry_only zero_vec
+              | _ ->
+                let () = Printf.printf "Vector.set_nth get_coeff_vec Var x is Some: %b\n" (Option.is_some row) in
+                let () = Printf.printf "%s is no const_vec\n" (if Option.is_some row then Vector.show (Option.get row) else "None") in
+                entry_only zero_vec
             end
-          | None -> entry_only zero_vec end
+          | None -> 
+            let () = Printf.printf "Vector.set_nth get_coeff_vec Var x None\n" in
+            entry_only zero_vec end
       | Unop (Neg, e, _, _) -> neg @@ convert_texpr e
       | Unop (Cast, e, _, _) -> convert_texpr e (*Ignore since casts in apron are used for floating point nums and rounding in contrast to CIL casts*)
       | Unop (Sqrt, e, _, _) -> raise NotLinear

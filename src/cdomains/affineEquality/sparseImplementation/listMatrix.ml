@@ -351,6 +351,7 @@ module ListMatrix: AbstractMatrix =
     let is_covered_by m1 m2 = Timing.wrap "is_covered_by" (is_covered_by m1) m2
 
     let find_opt f m =
+      let () = Printf.printf "Matrix.find_opt m:\n%s\n" (show m) in
       List.find_opt f m
 
     let map2 f m v =

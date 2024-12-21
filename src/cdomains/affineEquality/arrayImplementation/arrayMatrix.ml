@@ -348,6 +348,7 @@ module ArrayMatrix: AbstractMatrix =
     let is_covered_by m1 m2 = Timing.wrap "is_covered_by" (is_covered_by m1) m2
 
     let find_opt f m =
+      let () = Printf.printf "Matrix.find_opt m:\n%s\n" (show m) in
       let f' x = f (V.of_array x) in Option.map V.of_array (Array.find_opt f' m)
 
 

@@ -218,7 +218,7 @@ module SparseVector: AbstractVector =
     let is_const_vec v = 
       match v.entries with 
       | [] -> false
-      | (xi,xv)::[] -> if xi = v.len - 1 then false else true 
+      | (xi,xv)::[] -> if xi = v.len - 1 then false else true
       | _ -> false 
 
     let nth v n = (* Note: This exception HAS TO BE THROWN! It is expected by the domain *)
