@@ -44,7 +44,10 @@ module ArrayVector: AbstractVector =
 
     let set_nth v n new_val =
       let copy = copy v in
-      set_nth_with copy n new_val; copy
+      let () = Printf.printf "Before set_nth %d to %s: %s\n" n (A.to_string new_val) (show v)  in
+      set_nth_with copy n new_val; 
+      let () = Printf.printf "After set_nth %d to %s: %s\n" n (A.to_string new_val) (show copy) in
+      copy
 
     let insert_val_at n new_val v =
       if n > Array.length v then failwith "n too large" else
@@ -59,7 +62,7 @@ module ArrayVector: AbstractVector =
 
     let is_const_vec v =
       compare_length_with (filteri (fun i x -> (*Inefficient*)
-        compare_length_with v (i + 1) > 0 && x <>: A.zero) v) 1 = 0
+          compare_length_with v (i + 1) > 0 && x <>: A.zero) v) 1 = 0
 
     let nth = Array.get
 
@@ -117,6 +120,8 @@ module ArrayVector: AbstractVector =
       map2 f v1 v2
 
     let mapi_f_preserves_zero f v =
+      let () = Printf.printf "Before mapi_f_preserves_zero: %s\n" (show v) in
+      let () = Printf.printf "After mapi_f_preserves_zero: %s\n" (show (mapi f v)) in
       mapi f v
 
     let map2i_f_preserves_zero f v v' =

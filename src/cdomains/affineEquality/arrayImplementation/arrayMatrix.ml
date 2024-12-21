@@ -39,10 +39,13 @@ module ArrayMatrix: AbstractMatrix =
     let copy m = Timing.wrap "copy" (copy) m
 
     let add_empty_columns m cols =
-      (* let () = Printf.printf "Before add_empty_columns m:\n%sindices: %s\n" (show m) (Array.fold_right (fun x s -> (Int.to_string x) ^ "," ^ s) cols "") in *)
+      let () = Printf.printf "Before add_empty_columns m:\n%sindices: %s\n" (show m) (Array.fold_right (fun x s -> (Int.to_string x) ^ "," ^ s) cols "") in
       Array.modifyi (+) cols;
       let nnc = Array.length cols in
-      if is_empty m || nnc = 0 then m else
+      if is_empty m || nnc = 0 then
+        let () = Printf.printf "After add_empty_columns m:\n%s\n" (show m) in
+        m 
+      else
         let nr, nc = num_rows m, num_cols m in
         let m' = Array.make_matrix nr (nc + nnc) A.zero in
         for i = 0 to nr - 1 do
@@ -52,7 +55,7 @@ module ArrayMatrix: AbstractMatrix =
             m'.(i).(j + !offset) <- m.(i).(j);
           done
         done;
-        (* let () = Printf.printf "After add_empty_columns m:\n%s\n" (show m') in *)
+        let () = Printf.printf "After add_empty_columns m:\n%s\n" (show m') in
         m'
 
     let add_empty_columns m cols = Timing.wrap "add_empty_cols" (add_empty_columns m) cols
@@ -90,13 +93,12 @@ module ArrayMatrix: AbstractMatrix =
       for i = 0 to num_rows m - 1 do
         m.(i).(n) <- V.nth new_col i
       done;
-      (* let () = Printf.printf "After set_col m:\n%s\n" (show m) in *)
+      let () = Printf.printf "After set_col m:\n%s\n" (show m) in
       m
 
     let set_col_with m new_col n = Timing.wrap "set_col" (set_col_with m new_col) n
 
     let set_col m new_col n =
-      (* let () = Printf.printf "Before set_col m:\n%s\n" (show m) in *)
       let copy = copy m in
       set_col_with copy new_col n
 

@@ -40,6 +40,7 @@ module ListMatrix: AbstractMatrix =
 
     (* This only works if Array.modifyi has been removed from dim_add *)
     let add_empty_columns (m : t) (cols : int array) : t =    
+      let () = Printf.printf "Before add_empty_columns m:\n%sindices: %s\n" (show m) (Array.fold_right (fun x s -> (Int.to_string x) ^ "," ^ s) cols "") in
       let cols = Array.to_list cols in 
       let sorted_cols = List.sort Stdlib.compare cols in
       let rec count_sorted_occ acc cols last count =
@@ -50,6 +51,7 @@ module ListMatrix: AbstractMatrix =
           count_sorted_occ acc xs x 1      
       in
       let occ_cols = List.rev @@ count_sorted_occ [] sorted_cols 0 0 in
+      let () = Printf.printf "After add_empty_columns m:\n%s\n" (show (List.map (fun row -> V.insert_zero_at_indices row occ_cols (List.length cols)) m)) in
       List.map (fun row -> V.insert_zero_at_indices row occ_cols (List.length cols)) m
 
     let add_empty_columns m cols =
@@ -72,7 +74,7 @@ module ListMatrix: AbstractMatrix =
       Timing.wrap "get_col" (get_col m) n
 
     let set_col m new_col n = 
-      (* List.mapi (fun row_idx row -> V.set_nth row n (V.nth new_col row_idx)) m *)
+      let () = Printf.printf "After set_col m:\n%s\n" (show m) in
       List.map2 (fun row value -> V.set_nth row n value) m (V.to_list new_col)
 
     let append_matrices m1 m2  = (* keeps dimensions of first matrix, what if dimensions differ?*)
@@ -145,7 +147,7 @@ module ListMatrix: AbstractMatrix =
       [v]
 
     let normalize m =
-      let () = Printf.printf "Before normalize we have m:\n%s\n" (show m) in
+      let () = Printf.printf "Before normalizing we have m:\n%s\n" (show m) in
       let col_count = num_cols m in
       let dec_mat_2D (m : t) (row_idx : int) (col_idx : int) : t = 
         List.filteri_map (fun i row -> if i < row_idx then None else Some (V.starting_from_nth col_idx row)) m
@@ -258,6 +260,7 @@ module ListMatrix: AbstractMatrix =
         | None -> None
         | Some (_, value) -> 
           let normalized_v = V.map_f_preserves_zero (fun x -> x /: value) v in
+          let () = Printf.printf "After rref_vec, we have m:\n%s\n" (show (init_with_vec normalized_v)) in
           Some (init_with_vec normalized_v)
       else (* We try to normalize v and check if a contradiction arises. If not, we insert v at the appropriate place in m (depending on the pivot) *)
         let pivot_positions = get_pivot_positions m in

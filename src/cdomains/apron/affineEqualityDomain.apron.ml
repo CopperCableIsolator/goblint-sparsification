@@ -78,14 +78,17 @@ struct
           | Scalar Mpqf x -> x
           | Scalar Mpfrf x -> Mpfr.to_mpq x
         in
+        let () = Printf.printf "Vector.set_nth get_coeff_vec Cst x\n" in
         Vector.set_nth zero_vec ((Vector.length zero_vec) - 1) (of_union x)
       | Var x ->
+        let () = Printf.printf "Vector.set_nth get_coeff_vec Var x\n" in
         let entry_only v = Vector.set_nth v (Environment.dim_of_var t.env x) Mpqf.one in
         begin match t.d with
           | Some m ->
             let row = Matrix.find_opt (fun r -> Vector.nth r (Environment.dim_of_var t.env x) =: Mpqf.one) m in
             begin match row with
               | Some v when is_const_vec v ->
+                let () = Printf.printf "Vector.set_nth get_coeff_vec Some m\n" in
                 Vector.set_nth zero_vec ((Vector.length zero_vec) - 1) (Vector.nth v (Vector.length v - 1))
               | _ -> entry_only zero_vec
             end

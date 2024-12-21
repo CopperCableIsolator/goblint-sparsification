@@ -29,6 +29,15 @@ module SparseVector: AbstractVector =
       in 
       (extend_zero_aux 0 v.entries)
 
+    let show v = 
+      let t = to_list v in 
+      let rec list_str l =
+        match l with
+        | [] -> "]"
+        | x :: xs -> (A.to_string x) ^ " " ^ (list_str xs)
+      in
+      "["^list_str t^"\n"
+
     let of_list l = 
       let entries' = List.rev @@ List.fold_lefti (fun acc i x -> if x <> A.zero then (i, x) :: acc else acc) [] l
       in {entries = entries'; len = List.length l}
@@ -77,6 +86,7 @@ module SparseVector: AbstractVector =
     let set_nth v n num = (* TODO: Optimize! *)
       if n >= v.len then failwith "Out of bounds" 
       else
+        let () = Printf.printf "Before set_nth %d to %s: %s\n" n (A.to_string num) (show v) in
         let rec set_nth_helper vec acc =
           match vec with
           | [] -> if num <>: A.zero then List.rev ((n, num) :: acc) else List.rev acc
@@ -84,6 +94,7 @@ module SparseVector: AbstractVector =
           | (idx, value) :: xs when n < idx -> if num <>: A.zero then List.rev_append ((n, num) :: acc) vec else List.rev_append acc vec
           | x :: xs -> set_nth_helper xs (x :: acc)
         in
+        let () = Printf.printf "After set_nth %d to %s: %s\n" n (A.to_string num) (show {entries = set_nth_helper v.entries []; len = v.len}) in
         {entries = set_nth_helper v.entries []; len = v.len}
 
     let insert_val_at n new_val v = 
@@ -160,10 +171,10 @@ module SparseVector: AbstractVector =
           | (xidx, xval)::xs, (yidx, yval)::ys -> 
             if xidx <> i && yidx <> i then aux (f_rem_zero i acc A.zero A.zero) vec1 vec2 (i+1) (* When both vectors have implicit zeroes at front *)
             else
-            match xidx - yidx with (* Here at least one of the idx is i, which is the smaller one *)
-            | d when d < 0 -> aux (f_rem_zero i acc xval A.zero) xs vec2 (i + 1)
-            | d when d > 0 -> aux (f_rem_zero i acc A.zero yval) vec1 ys (i + 1)
-            | _            -> aux (f_rem_zero i acc xval yval) xs ys (i + 1)
+              match xidx - yidx with (* Here at least one of the idx is i, which is the smaller one *)
+              | d when d < 0 -> aux (f_rem_zero i acc xval A.zero) xs vec2 (i + 1)
+              | d when d > 0 -> aux (f_rem_zero i acc A.zero yval) vec1 ys (i + 1)
+              | _            -> aux (f_rem_zero i acc xval yval) xs ys (i + 1)
         in
         {entries = List.rev (aux [] v1.entries v2.entries 0); len = v1.len}
 
@@ -173,9 +184,11 @@ module SparseVector: AbstractVector =
       of_list (List.mapi f (to_list v))
 
     let mapi_f_preserves_zero f v =
+      let () = Printf.printf "Before mapi_f_preserves_zero: %s\n" (show v) in
       let entries' = List.filter_map (
           fun (idx, value) -> let new_val = f idx value in 
             if new_val = A.zero then None else Some (idx, new_val)) v.entries in 
+      let () = Printf.printf "After mapi_f_preserves_zero: %s\n" (show ({entries = entries'; len = v.len})) in
       {entries = entries'; len = v.len}
 
     let fold_left_f_preserves_zero f acc v =
@@ -307,13 +320,4 @@ module SparseVector: AbstractVector =
     let starting_from_nth n v =
       let entries' = List.filter_map (fun (idx, value) -> if idx < n then None else Some (idx - n, value)) v.entries in
       {entries = entries'; len = v.len - n}
-
-    let show v = 
-      let t = to_list v in 
-      let rec list_str l =
-        match l with
-        | [] -> "]"
-        | x :: xs -> (A.to_string x) ^ " " ^ (list_str xs)
-      in
-      "["^list_str t^"\n"
   end 
