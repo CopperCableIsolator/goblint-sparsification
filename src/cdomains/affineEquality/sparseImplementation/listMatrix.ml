@@ -253,11 +253,10 @@ module ListMatrix: AbstractMatrix =
 
     (* Inserts the vector v with pivot at piv_idx at the correct position in m. m has to be in rref form and v is only <>: A.zero on piv_idx or idx not included in piv_positions *)
     let insert_v_according_to_piv m v piv_idx pivot_positions = 
-      let reduced_m = reduce_col_with_vec m piv_idx v in
       match List.find_opt (fun (row_idx, piv_col) -> piv_col > piv_idx) pivot_positions with
-      | None -> append_row reduced_m v
+      | None -> append_row m v
       | Some (row_idx, _) ->
-        let (before, after) = List.split_at row_idx reduced_m in (* TODO: Optimize *)
+        let (before, after) = List.split_at row_idx m in (* TODO: Optimize *)
         before @ (v :: after)
 
     (* This function yields the same result as appending v to m, normalizing and removing zero rows would. *)
