@@ -271,7 +271,8 @@ struct
         RD.assert_inv ask rel' e' (not b) (no_overflow ask e)
       )
     in
-    if RD.is_bot_env res then raise Deadcode;
+    Printf.printf "DEBUG: About to check is_bot_env on:\n%s\n%!" (RD.show res);
+    if RD.is_bot_env res then (Printf.printf "DEBUG: res is BOT => Deadcode!\n%!"; raise Deadcode);
     {st with rel = res}
 
 
@@ -510,7 +511,9 @@ struct
           RD.assert_inv ask apr' e' false (no_overflow ask e)
         )
       in
-      if RD.is_bot_env res then raise Deadcode;
+      let () = Printf.printf "Is %s bot_env?\n" (RD.show res) in
+      if RD.is_bot_env res then 
+        raise Deadcode;
       {st with rel = res}
 
   let special man r f args =

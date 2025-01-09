@@ -611,17 +611,43 @@ struct
       (* set of ids of called functions *)
       let calledFuns = LHT.fold insrt lh Set.Int.empty in
       let is_bad_uncalled fn loc =
-        not (Set.Int.mem fn.vid calledFuns) &&
-        not (Str.last_chars loc.file 2 = ".h") &&
-        not (LibraryFunctions.is_safe_uncalled fn.vname) &&
-        not (Cil.hasAttribute "goblint_stub" fn.vattr)
+        let in_calledFuns = Set.Int.mem fn.vid calledFuns in
+        let ends_with_h = String.length loc.file >= 2 && Str.last_chars loc.file 2 = ".h" in
+        let is_stub = Cil.hasAttribute "goblint_stub" fn.vattr in
+        let is_safe = LibraryFunctions.is_safe_uncalled fn.vname in
+
+        let result = (* the existing logic *)
+          not in_calledFuns
+          && not ends_with_h
+          && not is_safe
+          && not is_stub
+        in
+
+        Printf.printf
+          "DEBUG: is_bad_uncalled(%s) -> in_calledFuns=%b ends_with_h=%b is_safe=%b is_stub=%b ==> %b\n"
+          fn.vname in_calledFuns ends_with_h is_safe is_stub result;
+
+        result      
       in
       let print_and_calculate_uncalled = function
-        | GFun (fn, loc) when is_bad_uncalled fn.svar loc->
-          let cnt = Cilfacade.countLoc fn in
-          uncalled_dead := !uncalled_dead + cnt;
-          if get_bool "ana.dead-code.functions" then
-            M.warn ~loc:(CilLocation loc) ~category:Deadcode "Function '%a' is uncalled: %d LLoC" CilType.Fundec.pretty fn cnt  (* CilLocation is fine because always printed from scratch *)
+        | GFun (fn, loc) ->
+          (* Debug: which function are we seeing here? *)
+          Printf.printf "DEBUG: Checking function %s at %s\n"
+            fn.svar.vname
+            (CilType.Location.show loc);
+          if is_bad_uncalled fn.svar loc then (
+            let cnt = Cilfacade.countLoc fn in
+            Printf.printf "DEBUG: -> is_bad_uncalled is TRUE for %s, has %d loc.\n"
+              fn.svar.vname
+              cnt;
+            uncalled_dead := !uncalled_dead + cnt;
+            if get_bool "ana.dead-code.functions" then
+              M.warn ~loc:(CilLocation loc) ~category:Deadcode
+                "Function '%a' is uncalled: %d LLoC"
+                CilType.Fundec.pretty fn cnt
+          ) else (
+            Printf.printf "DEBUG: -> is_bad_uncalled is FALSE for %s.\n" fn.svar.vname
+          )
         | _ -> ()
       in
       List.iter print_and_calculate_uncalled file.globals;

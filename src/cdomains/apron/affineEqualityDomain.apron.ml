@@ -162,7 +162,7 @@ struct
   type var = V.t
 
   let show t =
-    let conv_to_ints row =
+    (*let conv_to_ints row =
       let row = Array.copy @@ Vector.to_array row in
       let mpqf_of_z x = Mpqf.of_mpz @@ Z_mlgmpidl.mpzf_of_z x in
       let lcm = mpqf_of_z @@ Array.fold_left (fun x y -> Z.lcm x (Mpqf.get_den y)) Z.one row in
@@ -171,8 +171,8 @@ struct
       let div = Array.fold_left Z.gcd int_arr.(0) int_arr in
       Array.modify (fun x -> Z.div x div) int_arr;
       int_arr
-    in
-    let vec_to_constraint arr env =
+      in
+      let vec_to_constraint arr env =
       let vars, _ = Environment.vars env in
       let dim_to_str var =
         let coeff =  arr.(Environment.dim_of_var env var) in
@@ -201,13 +201,16 @@ struct
         Str.string_after res 1
       else
         res
-    in
-    match t.d with
-    | None -> "Bottom Env"
-    | Some m when Matrix.is_empty m -> "⊤"
-    | Some m ->
+      in
+      match t.d with
+      | None -> "Bottom Env"
+      | Some m when Matrix.is_empty m -> "⊤"
+      | Some m ->
       let constraint_list = List.init (Matrix.num_rows m) (fun i -> vec_to_constraint (conv_to_ints @@ Matrix.get_row m i) t.env) in
-      "[|"^ (String.concat "; " constraint_list) ^"|]"
+      "[|"^ (String.concat "; " constraint_list) ^"|]"*)
+    match t.d with
+    | Some m -> Matrix.show m
+    | None -> "None\n"
 
   let pretty () (x:t) = text (show x)
   let printXml f x = BatPrintf.fprintf f "<value>\n<map>\n<key>\nmatrix\n</key>\n<value>\n%s</value>\n<key>\nenv\n</key>\n<value>\n%a</value>\n</map>\n</value>\n" (XmlUtil.escape (show x)) Environment.printXml x.env
@@ -337,7 +340,7 @@ struct
         let mod_x = dim_add (Environment.dimchange a.env sup_env) x in
         let mod_y = dim_add (Environment.dimchange b.env sup_env) y in
         {d = Some (lin_disjunc 0 0 mod_x mod_y); env = sup_env}
-      | x, y when Matrix.equal x y -> {d = Some x; env = a.env}
+      | x, y when Matrix.equal (x) (y) -> {d = Some x; env = a.env}
       | x, y  -> {d = Some(lin_disjunc 0 0 x y); env = a.env}
 
   let join a b = Timing.wrap "join" (join a) b
