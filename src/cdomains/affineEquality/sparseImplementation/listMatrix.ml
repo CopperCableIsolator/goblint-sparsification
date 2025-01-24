@@ -179,17 +179,6 @@ module ListMatrix: AbstractMatrix =
       V.map2_f_preserves_zero (fun x y -> x -: (factor *: y)) row1 row2
 
     (** 
-       [get_pivot_positions m] returns a list of tuples of row index and pivot position (column index) of all rref-pivots of [m].
-       @param m A matrix in rref. 
-    *)
-    let get_pivot_positions m =
-      List.rev @@ List.fold_lefti (
-        fun acc i row -> match V.find_first_non_zero row with
-          | None -> acc
-          | Some (pivot_col, _) -> (i, pivot_col, row) :: acc
-      ) [] m
-
-    (** 
        [reduce_col m j] reduces the [j]-th column in [m] with the last row that has a non-zero element in this column.
     *)
     let reduce_col m j = 
@@ -282,40 +271,52 @@ module ListMatrix: AbstractMatrix =
                 V.map2_f_preserves_zero (fun x y -> x -: (s *: y)) row v)
         ) m
 
-    (** 
-       [insert_v_according_to_piv m v piv_idx pivot_position] inserts vector [v] into [m] such that rref is preserved.
-        @param m A matrix in rref such that [(r, piv_idx)] is not in [pivot_positions] for all [r]. 
-        @param v A vector such that [v(piv_idx) =: A.one] and [v(c) <>: A.zero] if [(r,c)] is not in [pivot_position] for all [r]. 
-    *)
+    (** Returns a list of tuples of row_idx, pivot_col, row, v_val_at_piv *)
+    let get_pivot_positions m v = 
+      let rec get_pivot_positions_aux acc m v row_idx = 
+        match m with
+        | [] -> List.rev acc
+        | row :: rs -> 
+          match V.find_first_non_zero row with
+          | None -> List.rev acc (* Since m is in rref, there will be no other pivots in the next rows *)
+          | Some (pivot_col, _) -> 
+            let v = List.drop_while (fun (index, _) -> index < pivot_col) v in  (* Filter out the part of v which is left of the pivot because it would not violate rref in that col *)
+            match v with
+            | [] -> List.rev acc (* We only need pivots where v[pivot_col] <>: A.zero. Since v is a sparse list, there is none anymore *)
+            | (v_idx, v_val) :: vs when v_idx = pivot_col -> get_pivot_positions_aux ((row_idx, pivot_col, row, v_val) :: acc) rs vs (row_idx + 1)
+            | _ -> get_pivot_positions_aux acc rs v (row_idx + 1)
+      in
+      get_pivot_positions_aux [] m (V.to_sparse_list v) 0
+
+    let get_pivot_positions m v = Timing.wrap "get_pivot_positions" (get_pivot_positions m) v
+
     let insert_v_according_to_piv m v piv_idx pivot_positions = 
       let reduced_m = reduce_col_with_vec m piv_idx v in
-      match List.find_opt (fun (row_idx, piv_col, _) -> piv_col > piv_idx) pivot_positions with
-      | None -> append_row reduced_m v
-      | Some (row_idx, _, _) -> 
-        let (before, after) = List.split_at row_idx reduced_m in 
-        before @ (v :: after)
+      let rec insert_helper top_m bot_m = 
+        match bot_m with
+        | [] -> List.rev_append top_m [v]
+        | row :: rs -> 
+          match V.find_first_non_zero row with
+          | None -> List.rev_append top_m (v :: bot_m)
+          | Some (idx, _) -> 
+            if idx > piv_idx then 
+              List.rev_append top_m (v :: bot_m)
+            else
+              insert_helper (row :: top_m) rs
+      in
+      insert_helper [] reduced_m
 
-    (** 
-       [rref_vec m v] yields the same result as appending [v] to [m], then bringing [m] into rref and removing all zero rows.
+    let insert_v_according_to_piv m v piv_idx pivot_positions = 
+      Timing.wrap "insert_v_according_to_piv" (insert_v_according_to_piv m v piv_idx) pivot_positions
 
-       {i Faster than appending [v] to [m] and normalizing!}
-       @param m A matrix in rref.
-       @param v A vector with number of entries equal to the number of columns of [v].
-    *)
     let rref_vec m v =
       if is_empty m then (* In this case, v is normalized and returned *)
         BatOption.map (fun (_, value) -> init_with_vec @@ div_row v value) (V.find_first_non_zero v)
       else (* We try to normalize v and check if a contradiction arises. If not, we insert v at the appropriate place in m (depending on the pivot) *)
-        let pivot_positions = get_pivot_positions m in
-        let v_after_elim = List.fold_left (
-            fun acc (row_idx, pivot_position, piv_row) ->
-              let v_at_piv = V.nth acc pivot_position in 
-              if v_at_piv =: A.zero then 
-                acc
-              else
-                sub_scaled_row acc piv_row v_at_piv
-          ) v pivot_positions
-        in 
+        let pivot_positions = get_pivot_positions m v in
+        let v_after_elim = List.fold_left (fun acc (row_idx, pivot_position, piv_row, v_at_piv) -> 
+            sub_scaled_row acc piv_row v_at_piv) v pivot_positions
+        in
         match V.find_first_non_zero v_after_elim with (* now we check for contradictions and finally insert v *)
         | None -> Some m (* v is zero vector and was therefore already covered by m *)
         | Some (idx, value) -> 
